@@ -183,6 +183,12 @@ export class SuperSimpleQueueHelper implements ISuperSimpleQueueHelper {
 					const monitorStatus = statusChangeResult.monitor;
 					const nowString = new Date().toISOString();
 
+					this.logger.debug({
+						message: `Step 8: Monitor ${monitorStatus.id} - escalationDelay: ${monitorStatus.escalationDelay}, statusDownSince: ${monitorStatus.statusDownSince}, escalationSentAt: ${monitorStatus.escalationSentAt}, status: ${monitorStatus.status}`,
+						service: SERVICE_NAME,
+						method: "getMonitorJob",
+					});
+
 					if (monitorStatus.status === "down") {
 						if (!monitorStatus.statusDownSince) {
 							await this.monitorsRepository.updateById(monitorId, teamId, {
@@ -199,6 +205,12 @@ export class SuperSimpleQueueHelper implements ISuperSimpleQueueHelper {
 							const elapsedMs = Date.now() - new Date(monitorStatus.statusDownSince).getTime();
 
 							if (elapsedMs >= monitorStatus.escalationDelay * 60_000) {
+								this.logger.debug({
+									message: `Step 8: Sending escalation notification for monitor ${monitorStatus.id} after ${elapsedMs}ms down`,
+									service: SERVICE_NAME,
+									method: "getMonitorJob",
+								});
+
 								this.notificationsService.handleNotifications(monitorStatus, status, { ...decision, shouldSendNotification: true }).catch((error: unknown) => {
 									this.logger.error({
 										message: `Error sending escalation notification for monitor ${monitorStatus.id}: ${error instanceof Error ? error.message : "Unknown error"}`,
