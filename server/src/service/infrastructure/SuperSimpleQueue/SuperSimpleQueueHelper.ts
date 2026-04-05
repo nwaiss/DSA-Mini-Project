@@ -199,7 +199,7 @@ export class SuperSimpleQueueHelper implements ISuperSimpleQueueHelper {
 							const elapsedMs = Date.now() - new Date(monitorStatus.statusDownSince).getTime();
 
 							if (elapsedMs >= monitorStatus.escalationDelay * 60_000) {
-								this.notificationsService.handleNotifications(monitorStatus, status, decision).catch((error: unknown) => {
+								this.notificationsService.handleNotifications(monitorStatus, status, { ...decision, shouldSendNotification: true }).catch((error: unknown) => {
 									this.logger.error({
 										message: `Error sending escalation notification for monitor ${monitorStatus.id}: ${error instanceof Error ? error.message : "Unknown error"}`,
 										service: SERVICE_NAME,
